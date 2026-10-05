@@ -1,0 +1,18 @@
+{
+  "questions": 24,
+  "intent_accuracy": 1.0,
+  "language_accuracy": 1.0,
+  "escalation": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "fp": 0,
+    "fn": 0
+  },
+  "replies_fully_verified": "24/24",
+  "identity": {
+    "periods_checked": 300,
+    "all_rows_add_up": true,
+    "max_exact_gap_or_rounding_paise": "1.00"
+  },
+  "misses": []
+}

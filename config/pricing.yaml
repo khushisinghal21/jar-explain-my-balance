@@ -1,0 +1,6 @@
+# Assumptions for the demo. Replace with the platform's real pricing rules.
+# None of these are Jar's internal numbers.
+gst_rate: 0.03             # GST charged on top of the gold value on every purchase
+buy_sell_spread: 0.025     # buy rate is this much above the sell rate (public reviews mention 2-3%)
+refund_sla_hours: 72       # a debit with no gold credit after this long goes to a human
+withdrawal_sla_hours: 48   # a withdrawal not paid out after this long goes to a human

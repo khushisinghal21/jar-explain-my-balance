@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explain my balance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #22163F; --muted: #6B6480; --paper: #F6F5FA; --surface: #FFFFFF; --line: #E2DEEC;
+    --gold: #9A6B00; --ok: #2E7D57; --debit: #B3261E; --focus: #5B3FD1;
+    --font: "Mukta", "Noto Sans Devanagari", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink: #ECE8F7; --muted: #A9A2BE; --paper: #15111F; --surface: #1F1A2C; --line: #332C45;
+            --gold: #E2B54A; --ok: #6CC79A; --debit: #F08A80; --focus: #A996FF; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 400 17px/1.55 var(--font);
+         font-variant-numeric: tabular-nums; }
+  button, input { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+  header { max-width: 1120px; margin: 0 auto; padding: 28px 24px 8px; }
+  h1 { font-size: 34px; line-height: 1.15; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+  .lede { color: var(--muted); margin: 6px 0 0; max-width: 62ch; }
+
+  main { max-width: 1120px; margin: 0 auto; padding: 16px 24px 48px;
+         display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 28px; align-items: start; }
+
+  .people { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .people button { border: 1px solid var(--line); background: var(--surface); border-radius: 999px;
+                   padding: 4px 14px; cursor: pointer; }
+  .people button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  .chat { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px;
+          min-height: 420px; display: flex; flex-direction: column; }
+  .log { flex: 1; display: flex; flex-direction: column; gap: 14px; }
+  .msg { max-width: 88%; padding: 10px 14px; border-radius: 14px; white-space: pre-line; }
+  .msg.user { align-self: flex-end; background: var(--ink); color: var(--paper); border-bottom-right-radius: 4px; }
+  .msg.bot { align-self: flex-start; background: var(--paper); border-bottom-left-radius: 4px; }
+  .msg .meta { display: block; font-size: 13px; color: var(--muted); margin-top: 6px; }
+  .msg .meta.bad { color: var(--debit); }
+  .empty { color: var(--muted); margin: auto 0; }
+  .samples { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 10px; }
+  .samples button { border: 1px dashed var(--line); background: none; border-radius: 10px; padding: 4px 10px;
+                    cursor: pointer; color: var(--muted); font-size: 15px; text-align: left; }
+  .samples button:hover { color: var(--ink); border-color: var(--muted); }
+  form { display: flex; gap: 8px; }
+  form input { flex: 1; border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; background: var(--paper); }
+  form button { border: 0; background: var(--ink); color: var(--paper); border-radius: 10px; padding: 9px 18px;
+                font-weight: 500; cursor: pointer; }
+
+  /* the receipt: the one memorable thing on the page */
+  .receipt { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 22px 22px 18px;
+             position: sticky; top: 16px;
+             -webkit-mask: radial-gradient(circle 6px at 50% 0, #0000 98%, #000) 50% 0 / 18px 100% repeat-x;
+                     mask: radial-gradient(circle 6px at 50% 0, #0000 98%, #000) 50% 0 / 18px 100% repeat-x; }
+  .receipt h2 { font-size: 20px; margin: 4px 0 2px; }
+  .receipt .who { color: var(--muted); margin: 0 0 14px; font-size: 15px; }
+  .row { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; }
+  .row .v { font-weight: 500; }
+  .row.neg .v { color: var(--debit); }
+  .row.pos .v { color: var(--ok); }
+  .row.total { border-top: 2px dashed var(--line); margin-top: 8px; padding-top: 10px; font-weight: 700; font-size: 19px; }
+  .row.total .v { color: var(--gold); }
+  .row.start { color: var(--muted); border-bottom: 1px dashed var(--line); padding-bottom: 8px; margin-bottom: 4px; }
+  .stamp { margin-top: 14px; font-size: 14px; color: var(--ok); border: 1px solid var(--ok); border-radius: 6px;
+           padding: 6px 10px; }
+  .stamp.bad { color: var(--debit); border-color: var(--debit); }
+  .ticket { margin-top: 12px; border-left: 3px solid var(--debit); padding: 2px 0 2px 12px; font-size: 15px; }
+  .ticket b { display: block; }
+  .placeholder { color: var(--muted); }
+
+  footer { max-width: 1120px; margin: 0 auto; padding: 0 24px 32px; color: var(--muted); font-size: 14px; }
+
+  @media (max-width: 880px) {
+    main { grid-template-columns: 1fr; }
+    .receipt { position: static; }
+    h1 { font-size: 28px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Why is my gold worth less than I saved?</h1>
+  <p class="lede">Ask in English, Hindi or Hinglish. The numbers come from the ledger, not the language model,
+    and every amount in the reply is checked against the ledger before you see it.</p>
+</header>
+
+<main>
+  <section aria-label="Conversation">
+    <div class="people" id="people" role="group" aria-label="Choose a demo user"></div>
+    <div class="chat">
+      <div class="log" id="log" aria-live="polite"><p class="empty">Pick a question below, or type your own.</p></div>
+      <div class="samples" id="samples"></div>
+      <form id="form">
+        <label for="q" class="visually-hidden" style="position:absolute;left:-9999px">Your question</label>
+        <input id="q" autocomplete="off" placeholder="e.g. Mera balance kam kyun hua?">
+        <button type="submit">Ask</button>
+      </form>
+    </div>
+  </section>
+
+  <aside class="receipt" aria-label="How the balance adds up">
+    <h2>How your balance adds up</h2>
+    <p class="who" id="who">Ask a question to see the breakdown.</p>
+    <div id="rows"><p class="placeholder">Each row is a real part of the change. Together they equal the balance, to the paisa.</p></div>
+    <div id="stamp"></div>
+    <div id="ticket"></div>
+  </aside>
+</main>
+<footer>Demo for Jar with synthetic users and gold prices. GST and buy/sell gap rates are assumptions set in config/pricing.yaml.</footer>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const LABEL = { start_value: "Worth at the start", paid: "You saved", gst: "GST on purchases",
+  spread: "Buy/sell gap", price_move: "Gold price movement", withdrawn: "Cash withdrawn", end_value: "Worth today" };
+let people = [], current = null;
+
+function renderPeople() {
+  $("#people").innerHTML = people.map(p => `<button aria-pressed="${p.id === current}" data-id="${p.id}">${esc(p.name)}</button>`).join("");
+  $("#people").querySelectorAll("button").forEach(b => b.onclick = () => choose(b.dataset.id));
+}
+function choose(id) {
+  current = id; renderPeople();
+  const p = people.find(x => x.id === id);
+  $("#log").innerHTML = `<p class="empty">You're asking as ${esc(p.name)}.</p>`;
+  $("#samples").innerHTML = p.samples.map(s => `<button type="button">${esc(s)}</button>`).join("");
+  $("#samples").querySelectorAll("button").forEach(b => b.onclick = () => send(b.textContent));
+  $("#who").textContent = "Ask a question to see the breakdown."; $("#rows").innerHTML = ""; $("#stamp").innerHTML = ""; $("#ticket").innerHTML = "";
+}
+function add(cls, html) {
+  $("#log").querySelector(".empty")?.remove();
+  const d = document.createElement("div"); d.className = "msg " + cls; d.innerHTML = html;
+  $("#log").appendChild(d); d.scrollIntoView({block: "nearest"});
+}
+function receipt(a) {
+  const p = people.find(x => x.id === current);
+  const isPeriod = a.breakdown.some(([k]) => k === "start_value");
+  $("#who").textContent = `${p.name}, ${isPeriod ? "this period" : "since the first purchase"}`;
+  $("#rows").innerHTML = a.breakdown.filter(([k, v]) => Number(v) !== 0 || k === "end_value").map(([k, v]) => {
+    const n = Number(v), cls = k === "end_value" ? "total" : k === "start_value" ? "start" : n < 0 ? "neg" : "pos";
+    const sign = (k === "end_value" || k === "start_value") ? "" : n < 0 ? "− " : "+ ";
+    return `<div class="row ${cls}"><span>${LABEL[k]}</span><span class="v">${sign}₹${Math.abs(n).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>`;
+  }).join("");
+  $("#stamp").innerHTML = a.verified
+    ? `<div class="stamp">Every amount in the reply was checked against the ledger (${a.numbers_checked} checked).</div>`
+    : `<div class="stamp bad">Some numbers in the reply didn't match the ledger.</div>`;
+  $("#ticket").innerHTML = a.ticket ? `<div class="ticket"><b>Sent to the team: ${esc(a.ticket.id)}</b>${a.ticket.issues.map(i => esc(i.kind.replace("_", " "))).join(", ")}</div>` : "";
+}
+async function send(q) {
+  q = q.trim(); if (!q || !current) return;
+  add("user", esc(q)); $("#q").value = "";
+  try {
+    const r = await fetch("/api/ask", {method: "POST", headers: {"Content-Type": "application/json"},
+                                       body: JSON.stringify({user_id: current, question: q})});
+    if (!r.ok) throw new Error((await r.json()).detail || r.statusText);
+    const a = await r.json();
+    const meta = a.notes.length ? `<span class="meta bad">${esc(a.notes.join(" "))}</span>`
+                                : `<span class="meta">Answered by ${a.renderer === "llm" ? "the language model, numbers checked" : "the template"}</span>`;
+    add("bot", esc(a.text) + meta);
+    receipt(a);
+  } catch (e) { add("bot", `Couldn't get an answer: ${esc(e.message)}. Check the server is running.`); }
+}
+$("#form").onsubmit = e => { e.preventDefault(); send($("#q").value); };
+fetch("/api/users").then(r => r.json()).then(p => { people = p; choose(p[0].id); })
+  .catch(() => $("#log").innerHTML = `<p class="empty">The demo server isn't reachable. Start it with: uvicorn explainbal.api:app</p>`);
+</script>
+</body>
+</html>
